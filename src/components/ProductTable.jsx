@@ -1,5 +1,111 @@
 import { useState, useMemo } from 'react';
 
+const ProductDetailsModal = ({ product, onClose }) => {
+  if (!product) return null;
+
+  // Close modal when clicking on the overlay
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  // Close modal when pressing Escape key
+  React.useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+      onClick={handleOverlayClick}
+    >
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 focus:outline-none"
+        >
+          <span className="sr-only">Close</span>
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Modal content */}
+        <div className="p-6">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+              <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-lg font-medium text-gray-900">
+                {product.name}
+              </h3>
+            </div>
+          </div>
+          
+          <div className="mt-4 space-y-3 text-sm text-gray-600">
+            <div className="flex">
+              <span className="font-medium text-gray-900 w-28">Product ID:</span>
+              <span className="text-gray-700">{product.id}</span>
+            </div>
+            <div className="flex">
+              <span className="font-medium text-gray-900 w-28">Category:</span>
+              <span className="text-gray-700">{product.category}</span>
+            </div>
+            <div className="flex">
+              <span className="font-medium text-gray-900 w-28">Price:</span>
+              <span className="text-gray-700">${product.price}</span>
+            </div>
+            <div className="flex items-center">
+              <span className="font-medium text-gray-900 w-28">Status:</span>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                product.inStock 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {product.inStock ? 'In Stock' : 'Out of Stock'}
+              </span>
+            </div>
+            <div className="flex">
+              <span className="font-medium text-gray-900 w-28">Stock:</span>
+              <span className="text-gray-700">{product.stock} units</span>
+            </div>
+            {product.description && (
+              <div className="pt-3 mt-3 border-t border-gray-200">
+                <h4 className="font-medium text-gray-900 mb-1">Description:</h4>
+                <p className="text-gray-700">{product.description}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="bg-gray-50 px-6 py-4 flex justify-end rounded-b-lg">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ProductTable = ({ products, onEdit, onDelete }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -7,6 +113,7 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
   const [inStockFilter, setInStockFilter] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [priceSort, setPriceSort] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Get unique categories for filter dropdown
   const categories = useMemo(() => {
@@ -116,14 +223,7 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
               id="search"
               value={searchTerm}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder="Search by 
-              
-              
-              
-              
-              
-              
-              name or description"
+              placeholder="Search by name or description"
               className="w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
             />
           </div>
@@ -342,7 +442,9 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
                   }`}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {product.name}
+                        </div>
                         {product.description && (
                           <div className="text-sm text-gray-500 truncate max-w-xs">
                             {product.description}
@@ -403,6 +505,14 @@ const ProductTable = ({ products, onEdit, onDelete }) => {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Product Details Modal */}
+      {selectedProduct && (
+        <ProductDetailsModal 
+          product={selectedProduct} 
+          onClose={() => setSelectedProduct(null)} 
+        />
       )}
 
       {/* Pagination */}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 const ProductForm = ({ product, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
+    id: '',
     name: '',
     price: '',
     category: '',
@@ -15,6 +16,7 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
   useEffect(() => {
     if (product) {
       setFormData({
+        id: product.id || '',
         name: product.name,
         price: product.price.toString(),
         category: product.category,
@@ -41,11 +43,37 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
     }
   };
 
+  const handleStockToggle = (e) => {
+    const isInStock = e.target.checked;
+    setFormData(prev => ({
+      ...prev,
+      inStock: isInStock,
+      stock: isInStock ? prev.stock : '0' // Set stock to 0 when toggling to out of stock
+    }));
+    
+    // Clear stock error when toggling
+    if (errors.stock) {
+      setErrors(prev => ({
+        ...prev,
+        stock: ''
+      }));
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
     if (!formData.name.trim()) {
       newErrors.name = 'Product name is required';
+    }
+    
+    // Validate stock if in stock is selected
+    if (formData.inStock) {
+      if (!formData.stock.trim()) {
+        newErrors.stock = 'Stock quantity is required when in stock';
+      } else if (isNaN(formData.stock) || Number(formData.stock) <= 0) {
+        newErrors.stock = 'Stock quantity must be greater than 0 when in stock';
+      }
     }
     
     if (!formData.price || isNaN(formData.price) || parseFloat(formData.price) <= 0) {
@@ -56,8 +84,9 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
       newErrors.category = 'Category is required';
     }
     
-    if (!formData.stock || isNaN(formData.stock) || parseInt(formData.stock) < 0) {
-      newErrors.stock = 'Valid stock quantity is required';
+    // Only validate stock if in stock is selected
+    if (formData.inStock && (!formData.stock || isNaN(formData.stock) || parseInt(formData.stock) <= 0)) {
+      newErrors.stock = 'Stock quantity must be greater than 0 when in stock';
     }
     
     setErrors(newErrors);
@@ -117,13 +146,32 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
+        {product && (
+          <div className="space-y-6">
+            <div>
+              <label htmlFor="id" className="block text-sm font-medium text-gray-700">
+                Product ID
+              </label>
+              <input
+                type="text"
+                id="id"
+                name="id"
+                value={formData.id}
+                readOnly
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-100 text-gray-600 cursor-not-allowed"
+              />
+              <p className="mt-1 text-xs text-gray-500">Product ID is auto-generated and cannot be changed</p>
+            </div>
+          </div>
+        )}
+        
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
             <div className="flex items-center">
               <svg className="h-4 w-4 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
-              Product Name
+              Product Name <span className="text-red-500 ml-1">*</span>
             </div>
           </label>
           <input
@@ -145,7 +193,7 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
               <svg className="h-4 w-4 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
-              Price ($)
+              Price ($) <span className="text-red-500 ml-1">*</span>
             </div>
           </label>
           <input
@@ -168,7 +216,7 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
               <svg className="h-4 w-4 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
-              Category
+              Category <span className="text-red-500 ml-1">*</span>
             </div>
           </label>
           <select
@@ -192,7 +240,7 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
               <svg className="h-4 w-4 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h4a1 1 0 011 1v2h4a1 1 0 011 1v2a1 1 0 01-1 1h-1v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8H3a1 1 0 01-1-1V5a1 1 0 011-1h4zM9 8v8h2V8H9zm4 0v8h2V8h-2z" />
               </svg>
-              Stock Quantity
+              Stock Quantity {formData.inStock && <span className="text-red-500">*</span>}
             </div>
           </label>
           <input
@@ -202,8 +250,10 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
             value={formData.stock}
             onChange={handleChange}
             min="0"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-            placeholder="0"
+            disabled={!formData.inStock}
+            className={`w-full px-3 py-2 border ${!formData.inStock ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'} text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200`}
+            placeholder={formData.inStock ? "Enter stock quantity" : "0 (out of stock)"}
+            required={formData.inStock}
           />
           {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
         </div>
@@ -214,7 +264,7 @@ const ProductForm = ({ product, onSubmit, onCancel }) => {
               type="checkbox"
               name="inStock"
               checked={formData.inStock}
-              onChange={(e) => setFormData(prev => ({ ...prev, inStock: e.target.checked }))}
+              onChange={handleStockToggle}
               className="sr-only"
             />
             <div className="relative">

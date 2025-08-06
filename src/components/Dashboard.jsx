@@ -11,20 +11,25 @@ const Dashboard = ({ onLogout }) => {
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
   const [confirmModal, setConfirmModal] = useState({ show: false, productId: null, productName: '' });
 
+  // Generate a unique ID for new products
+  const generateId = () => {
+    return 'prod_' + Math.random().toString(36).substr(2, 9);
+  };
+
   // Load products from localStorage on component mount
   useEffect(() => {
     // Initialize with expanded sample data (temporarily forcing refresh)
     const initialProducts = [
-      { id: 1, name: 'Laptop', price: 999.99, category: 'Electronics', stock: 15, inStock: true, description: 'High-performance laptop for work and gaming' },
-      { id: 2, name: 'T-Shirt', price: 24.99, category: 'Apparel', stock: 50, inStock: true, description: 'Comfortable cotton t-shirt' },
-      { id: 3, name: 'Organic Apples', price: 4.99, category: 'Grocery', stock: 0, inStock: false, description: 'Fresh organic apples from local farms' },
-      { id: 4, name: 'Wireless Headphones', price: 149.99, category: 'Electronics', stock: 25, inStock: true, description: 'Noise-cancelling wireless headphones with premium sound quality' },
-      { id: 5, name: 'Denim Jeans', price: 79.99, category: 'Apparel', stock: 30, inStock: true, description: 'Classic blue denim jeans with comfortable fit' },
-      { id: 6, name: 'Organic Bananas', price: 2.99, category: 'Grocery', stock: 100, inStock: true, description: 'Fresh organic bananas, perfect for smoothies' },
-      { id: 7, name: 'Smartphone', price: 699.99, category: 'Electronics', stock: 8, inStock: true, description: 'Latest smartphone with advanced camera and fast processor' },
-      { id: 8, name: 'Running Shoes', price: 129.99, category: 'Apparel', stock: 0, inStock: false, description: 'Lightweight running shoes for maximum comfort' },
-      { id: 9, name: 'Whole Grain Bread', price: 3.49, category: 'Grocery', stock: 45, inStock: true, description: 'Freshly baked whole grain bread with seeds' },
-      { id: 10, name: 'Tablet', price: 399.99, category: 'Electronics', stock: 12, inStock: true, description: '10-inch tablet perfect for work and entertainment' }
+      { id: 'prod_1', name: 'Laptop', price: 999.99, category: 'Electronics', stock: 15, inStock: true, description: 'High-performance laptop for work and gaming' },
+      { id: 'prod_2', name: 'T-Shirt', price: 24.99, category: 'Apparel', stock: 50, inStock: true, description: 'Comfortable cotton t-shirt' },
+      { id: 'prod_3', name: 'Organic Apples', price: 4.99, category: 'Grocery', stock: 0, inStock: false, description: 'Fresh organic apples from local farms' },
+      { id: 'prod_4', name: 'Wireless Headphones', price: 149.99, category: 'Electronics', stock: 25, inStock: true, description: 'Noise-cancelling wireless headphones with premium sound quality' },
+      { id: 'prod_5', name: 'Denim Jeans', price: 79.99, category: 'Apparel', stock: 30, inStock: true, description: 'Classic blue denim jeans with comfortable fit' },
+      { id: 'prod_6', name: 'Organic Bananas', price: 2.99, category: 'Grocery', stock: 100, inStock: true, description: 'Fresh organic bananas, perfect for smoothies' },
+      { id: 'prod_7', name: 'Smartphone', price: 699.99, category: 'Electronics', stock: 8, inStock: true, description: 'Latest smartphone with advanced camera and fast processor' },
+      { id: 'prod_8', name: 'Running Shoes', price: 129.99, category: 'Apparel', stock: 0, inStock: false, description: 'Lightweight running shoes for maximum comfort' },
+      { id: 'prod_9', name: 'Whole Grain Bread', price: 3.49, category: 'Grocery', stock: 45, inStock: true, description: 'Freshly baked whole grain bread with seeds' },
+      { id: 'prod_10', name: 'Tablet', price: 399.99, category: 'Electronics', stock: 12, inStock: true, description: '10-inch tablet perfect for work and entertainment' }
     ];
     
     // Check if we should load from localStorage or use fresh sample data
@@ -51,10 +56,15 @@ const Dashboard = ({ onLogout }) => {
   const addProduct = (product) => {
     const newProduct = {
       ...product,
-      id: Math.max(...products.map(p => p.id), 0) + 1
+      id: generateId()
     };
     setProducts([...products, newProduct]);
     setShowForm(false);
+    setAlert({
+      show: true,
+      type: 'success',
+      message: 'Product added successfully!'
+    });
   };
 
   const updateProduct = (updatedProduct) => {
